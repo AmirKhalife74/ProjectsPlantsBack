@@ -9,6 +9,8 @@ class PlantRepository {
     object Database {
         // Connecting to the db
         // asdasd
+        // aaaa
+        private val asqar = 10
         private val client = KMongo.createClient("mongodb+srv://<username>:<password>@cluster0.mongodb.net/?retryWrites=true&w=majority").coroutine
         val database: CoroutineDatabase = client.getDatabase("plantsapp") // database name
     }
