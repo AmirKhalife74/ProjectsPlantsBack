@@ -28,6 +28,7 @@ dependencies {
     implementation("org.litote.kmongo:kmongo:4.10.0")
     implementation("org.litote.kmongo:kmongo-coroutine:4.10.0")
 
+
     //json and data converters
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.1")
     implementation("io.ktor:ktor-server-content-negotiation:3.0.1")

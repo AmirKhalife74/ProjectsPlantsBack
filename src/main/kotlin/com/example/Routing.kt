@@ -1,70 +1,74 @@
 package com.example
 
 import com.example.data.model.Plant
+import com.example.data.model.ResponseModel
+import com.example.data.repositories.PlantRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+
 val plants = mutableListOf<Plant>()
-fun Application.configureRouting() {
+fun Application.configureRouting(repository: PlantRepository) {
 
     routing {
-        get("/") {
-            call.respondText("Hello World!")
-        }
-
-        get("/plants") {
+        get("/getAllPlants") {
             val plants =
-                getAllPlants() ?: return@get call.respondText("Plants not found", status = HttpStatusCode.BadRequest)
+                repository.getAllPlants() ?: return@get call.respondText(
+                    "Plants not found",
+                    status = HttpStatusCode.BadRequest
+                )
             call.respond(plants)
         }
-        post("/plant{id}") {
+        post("/getPlantById{id}") {
             val id =
                 call.parameters["id"] ?: return@post call.respondText("Bad Request", status = HttpStatusCode.BadRequest)
-            val plant = getPlantById(id.toInt())?: return@post call.respondText("PlantNot found", status = HttpStatusCode.NotFound)
+            val plant = repository.getPlantById(id) ?: return@post call.respondText(
+                "PlantNot found",
+                status = HttpStatusCode.NotFound
+            )
             call.respond(plant)
         }
 
-        post("/addPlant"){
+        post("/addPlant") {
             val plant = call.receive<Plant>()
-            plants.add(plant)
-            call.respondText("plant added successfully", status = HttpStatusCode.OK)
+
+            // Add plant to repository
+            repository.addPlant(plant)
+
+            // Create the response
+            val response = ResponseModel(
+                status = "200",
+                message = "Plant added successfully" // Optionally include the plant in the response
+            )
+
+            // Respond with the status code and the serialized response body
+            call.respond(HttpStatusCode.OK,response)
         }
 
-        put("/editPlant{id}")
+        put("/editPlantById{id}")
         {
-            val id = call.parameters["id"] ?: return@put call.respondText("Bad Request", status = HttpStatusCode.BadRequest)
+            val id = call.parameters["id"]
             val updatedPlant = call.receive<Plant>()
-            val index = plants.indexOfFirst { it.id == id.toInt() }
-            if (index != -1) {
-                plants[index] = updatedPlant
-                call.respondText("Plant updated successfully!")
+            val isUpdated = id?.let { repository.updatePlant(it, updatedPlant) } ?: false
+            if (isUpdated) {
+                call.respondText("Plant updated successfully")
             } else {
-                call.respondText("Plant not found!", status = HttpStatusCode.NotFound)
+                call.respondText("Failed to update plant", status = HttpStatusCode.BadRequest)
             }
 
         }
 
         delete("/deletePlant{id}") {
-            val id = call.parameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
-            val removed = plants.removeIf { it.id == id.toInt() }
-            if (removed) {
-                call.respondText("Plant removed successfully!", status = HttpStatusCode.OK)
-            }else
-            {
-                call.respondText("Plant not found!", status = HttpStatusCode.NotFound)
+            val id = call.parameters["id"]
+            val isDeleted = id?.let { repository.deletePlant(it) } ?: false
+            if (isDeleted) {
+                call.respondText("Plant deleted successfully")
+            } else {
+                call.respondText("Failed to delete plant", status = HttpStatusCode.BadRequest)
             }
         }
     }
-}
-
-fun getAllPlants(): List<Plant> {
-    return plants
-}
-
-fun getPlantById(id: Int): Plant? {
-    val plant = plants.find { it.id == id }
-    return plant
 }
 

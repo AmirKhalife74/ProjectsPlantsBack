@@ -1,21 +1,45 @@
 package com.example
 
+import com.example.data.model.ObjectIdSerializer
+import com.example.data.repositories.PlantRepository
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import org.bson.types.ObjectId
+import org.litote.kmongo.coroutine.CoroutineClient
+import org.litote.kmongo.coroutine.CoroutineDatabase
+import org.litote.kmongo.coroutine.coroutine
+import org.litote.kmongo.reactivestreams.KMongo
 
+
+lateinit var mongoClient: CoroutineClient
+lateinit var database: CoroutineDatabase
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
+fun Application.configureMongoDB() {
+    mongoClient = KMongo.createClient().coroutine
+    database = mongoClient.getDatabase("plantsDB") // نام دیتابیس
+    log.info("Connected to MongoDB!")
+}
+
 fun Application.module() {
+    configureMongoDB()
     install(ContentNegotiation)
     {
+
         json(Json {
             prettyPrint = true
             isLenient = true
+            serializersModule = SerializersModule {
+                contextual(ObjectId::class, ObjectIdSerializer)
+            }
         })
     }
-    configureRouting()
+    val plantRepository = PlantRepository(database.getCollection("plants"))
+    configureRouting(plantRepository)
+
 }
