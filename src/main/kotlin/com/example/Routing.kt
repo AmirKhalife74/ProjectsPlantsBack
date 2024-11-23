@@ -11,6 +11,8 @@ import com.example.utils.JwtConfig
 import com.example.utils.UserRole
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -19,13 +21,25 @@ import io.ktor.server.routing.*
 fun Application.configureRouting(repository: PlantRepository,userRepository: UserRepository) {
 
     routing {
+
+
+        get("/")
+        {
+            call.respond("Hello World!")
+        }
         get("/getAllPlants") {
             val plants =
                 repository.getAllPlants() ?: return@get call.respondText(
                     "Plants not found",
                     status = HttpStatusCode.BadRequest
                 )
-            call.respond(plants)
+            if (plants.size!=0) {
+                call.respond(plants)
+            }else
+            {
+                call.respond(HttpStatusCode.NotFound,"There is no plants")
+            }
+
         }
         post("/getPlantById{id}") {
             val id =
@@ -81,10 +95,10 @@ fun Application.configureRouting(repository: PlantRepository,userRepository: Use
             val user = userRepository.getUserByUsername(loginRequest.username)
 
             if (user != null && userRepository.verifyPassword(loginRequest.password, user.passwordHash)) {
-                val token = JwtConfig.generateToken(user)
+                val token = JwtConfig.generateToken(user.username,user.role)
                 call.respond(mapOf("token" to token))
             } else {
-                call.respond(HttpStatusCode.Unauthorized, "Invalid credentials")
+                call.respond(HttpStatusCode.Unauthorized, "Inva lid credentials")
             }
         }
 
@@ -116,6 +130,16 @@ fun Application.configureRouting(repository: PlantRepository,userRepository: Use
             call.respond(HttpStatusCode.Created, createdUser)
 
         }
+        authenticate("auth-jwt") {
+            get("/getAllUsers") {
+                val principal = call.principal<JWTPrincipal>()
+                val username = principal?.payload?.getClaim("username")?.asString()
+                val role = principal?.payload?.getClaim("role")?.asString()
+
+                call.respondText("Hello, $username with role $role")
+            }
+        }
+
     }
 }
 

@@ -1,10 +1,14 @@
 package com.example
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import com.example.data.model.ObjectIdSerializer
 import com.example.data.repositories.PlantRepository
 import com.example.data.repositories.UserRepository
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.plugins.contentnegotiation.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
@@ -49,5 +53,22 @@ fun Application.module() {
 
 fun Application.configureSecurity()
 {
-
+    install(Authentication) {
+        jwt("auth-jwt") {
+            realm = "projectplantsRealm"
+            verifier(
+                JWT.require(Algorithm.HMAC256("your-secret-key"))
+                    .withIssuer("projectplants")
+                    .withAudience("projectplantsAudience")
+                    .build()
+            )
+            validate { credential ->
+                if (credential.payload.getClaim("username").asString() != null) {
+                    JWTPrincipal(credential.payload)
+                } else {
+                    null
+                }
+            }
+        }
+    }
 }

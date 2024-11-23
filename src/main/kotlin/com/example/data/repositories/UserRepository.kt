@@ -32,4 +32,8 @@ class UserRepository(private val collection: CoroutineCollection<User>) {
         val newUser = User(username = username, passwordHash = hashedPassword, email = email, role = role)
         return addUser(newUser)
     }
+
+    suspend fun getAllUsers(): List<User> {
+        return collection.find().toList()
+    }
 }
