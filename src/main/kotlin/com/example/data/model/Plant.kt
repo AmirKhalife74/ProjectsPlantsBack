@@ -12,7 +12,7 @@ import org.bson.types.ObjectId
 
 @Serializable
 data class Plant(
-    @Serializable(with = ObjectIdSerializer::class) val id: ObjectId = ObjectId(),
+    @Serializable(with = ObjectIdSerializer::class) val id: ObjectId? = ObjectId(),
     val name: String,
     val description: String,
     val careInstructions: CareInstructions,
