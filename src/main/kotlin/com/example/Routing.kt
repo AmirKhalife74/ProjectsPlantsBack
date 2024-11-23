@@ -1,16 +1,22 @@
 package com.example
 
+import com.example.data.model.auth.LoginRequest
 import com.example.data.model.Plant
+import com.example.data.model.auth.RegisterRequest
 import com.example.data.model.ResponseModel
+import com.example.data.model.User
 import com.example.data.repositories.PlantRepository
+import com.example.data.repositories.UserRepository
+import com.example.utils.JwtConfig
+import com.example.utils.UserRole
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-val plants = mutableListOf<Plant>()
-fun Application.configureRouting(repository: PlantRepository) {
+
+fun Application.configureRouting(repository: PlantRepository,userRepository: UserRepository) {
 
     routing {
         get("/getAllPlants") {
@@ -33,18 +39,17 @@ fun Application.configureRouting(repository: PlantRepository) {
 
         post("/addPlant") {
             val plant = call.receive<Plant>()
+            try {
+                repository.addPlant(plant)
+                val response = ResponseModel(
+                    status = "200",
+                    message = "Plant added successfully"
 
-            // Add plant to repository
-            repository.addPlant(plant)
-
-            // Create the response
-            val response = ResponseModel(
-                status = "200",
-                message = "Plant added successfully" // Optionally include the plant in the response
-            )
-
-            // Respond with the status code and the serialized response body
-            call.respond(HttpStatusCode.OK,response)
+                )
+                call.respond(HttpStatusCode.OK, response)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.BadRequest)
+            }
         }
 
         put("/editPlantById{id}")
@@ -68,6 +73,48 @@ fun Application.configureRouting(repository: PlantRepository) {
             } else {
                 call.respondText("Failed to delete plant", status = HttpStatusCode.BadRequest)
             }
+        }
+
+        post("/login") {
+
+            val loginRequest = call.receive<LoginRequest>()
+            val user = userRepository.getUserByUsername(loginRequest.username)
+
+            if (user != null && userRepository.verifyPassword(loginRequest.password, user.passwordHash)) {
+                val token = JwtConfig.generateToken(user)
+                call.respond(mapOf("token" to token))
+            } else {
+                call.respond(HttpStatusCode.Unauthorized, "Invalid credentials")
+            }
+        }
+
+        post("/register") {
+            val registerRequest = call.receive<RegisterRequest>()
+            // Password validation
+            if (registerRequest.password != registerRequest.confirmPassword) {
+                call.respond(HttpStatusCode.BadRequest, "Passwords do not match")
+                return@post
+            }
+
+            // Check if username or email already exists
+            val existingUser = userRepository.getUserByUsername(registerRequest.username)
+            if (existingUser != null) {
+                call.respond(HttpStatusCode.Conflict, "Username already taken")
+                return@post
+            }
+
+            // Default to user role, but allow custom role from request
+            val role = when (registerRequest.role) {
+                UserRole.ADMIN -> UserRole.ADMIN
+                UserRole.MODERATOR -> UserRole.MODERATOR
+                else -> UserRole.USER  // Default to "user" if no role is specified or an invalid one is provided
+            }
+
+            // Save the user
+            val createdUser = userRepository.createUser(username = registerRequest.username, password = registerRequest.password,registerRequest.email,role)
+
+            call.respond(HttpStatusCode.Created, createdUser)
+
         }
     }
 }

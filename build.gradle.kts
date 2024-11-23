@@ -19,6 +19,7 @@ application {
 
 repositories {
     mavenCentral()
+    maven("https://kotlin.bintray.com/ktor")
 }
 
 dependencies {
@@ -39,5 +40,11 @@ dependencies {
     implementation("io.ktor:ktor-server-config-yaml-jvm")
     testImplementation("io.ktor:ktor-server-test-host-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    // for auth and jwt
+    implementation("io.ktor:ktor-server-auth:3.0.1")
+    implementation("io.ktor:ktor-server-auth-jwt:3.0.1")
+
+    //for decrypt and encrypt user password
+    implementation("org.mindrot:jbcrypt:0.4")
 
 }

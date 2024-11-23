@@ -2,6 +2,7 @@ package com.example
 
 import com.example.data.model.ObjectIdSerializer
 import com.example.data.repositories.PlantRepository
+import com.example.data.repositories.UserRepository
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -28,6 +29,7 @@ fun Application.configureMongoDB() {
 
 fun Application.module() {
     configureMongoDB()
+    configureSecurity()
     install(ContentNegotiation)
     {
 
@@ -40,6 +42,12 @@ fun Application.module() {
         })
     }
     val plantRepository = PlantRepository(database.getCollection("plants"))
-    configureRouting(plantRepository)
+    val userRepository = UserRepository(database.getCollection("users"))
+    configureRouting(plantRepository,userRepository)
+
+}
+
+fun Application.configureSecurity()
+{
 
 }
