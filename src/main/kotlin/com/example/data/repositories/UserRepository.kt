@@ -12,16 +12,12 @@ class UserRepository(private val collection: CoroutineCollection<User>) {
         return user
     }
 
-    suspend fun insertUser(user: User) {
-        collection.insertOne(user)
-    }
-
     suspend fun verifyPassword(purePassword: String, hashedPassword: String): Boolean {
         val isPasswordVerified = BCrypt.checkpw(purePassword, hashedPassword)
         return isPasswordVerified
     }
 
-    suspend fun addUser(user: User): User {
+    private suspend fun addUser(user: User): User {
 
         collection.insertOne(user)
         return user
@@ -34,6 +30,6 @@ class UserRepository(private val collection: CoroutineCollection<User>) {
     }
 
     suspend fun getAllUsers(): List<User> {
-        return collection.find().toList()
+        return collection.find(User::role eq UserRole.USER).toList()
     }
 }

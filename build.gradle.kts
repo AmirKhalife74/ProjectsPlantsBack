@@ -47,4 +47,7 @@ dependencies {
     //for decrypt and encrypt user password
     implementation("org.mindrot:jbcrypt:0.4")
 
+    //Status Page
+    implementation("io.ktor:ktor-server-status-pages:3.0.1")
+
 }
