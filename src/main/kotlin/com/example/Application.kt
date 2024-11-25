@@ -15,6 +15,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
@@ -41,6 +42,7 @@ fun Application.configureMongoDB() {
 fun Application.module() {
     configureMongoDB()
     configureSecurity()
+    configureLogging()
     install(ContentNegotiation)
     {
 
@@ -104,5 +106,13 @@ fun Application.configureStatusPages() {
         status(HttpStatusCode.Forbidden) { call, _ ->
             call.respond(HttpStatusCode.Forbidden, "Forbidden access")
         }
+    }
+}
+
+fun Application.configureLogging() {
+    intercept(ApplicationCallPipeline.Monitoring) {
+        val method = call.request.httpMethod.value
+        val uri = call.request.uri
+        println("Received request: $method $uri")
     }
 }

@@ -1,10 +1,16 @@
 package com.example.routing
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTVerificationException
+import com.example.data.model.User
 import com.example.data.model.auth.LoginRequest
 import com.example.data.model.auth.RegisterRequest
 import com.example.data.repositories.UserRepository
+import com.example.database.DataBase
 import com.example.utils.JwtConfig
 import com.example.utils.UserRole
+import com.mongodb.client.model.Filters
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -24,7 +30,7 @@ fun Application.configureAuthRouting(userRepository: UserRepository) {
                 val token = JwtConfig.generateToken(user.username, user.role)
                 call.respond(mapOf("token" to token))
             } else {
-                call.respond(HttpStatusCode.Unauthorized, "Inva lid credentials")
+                call.respond(HttpStatusCode.Unauthorized, "Invalid credentials")
             }
         }
 
@@ -51,16 +57,45 @@ fun Application.configureAuthRouting(userRepository: UserRepository) {
             }
 
             // Save the user
-            val createdUser = userRepository.createUser(
-                username = registerRequest.username,
-                password = registerRequest.password,
-                registerRequest.email,
-                role
-            )
-
+            val createdUser = userRepository.createUser(registerRequest)
             call.respond(HttpStatusCode.Created, createdUser)
 
         }
+        post("/refresh") {
+            val refreshToken = call.request.header("Authorization")?.removePrefix("Bearer ")
+
+            if (refreshToken.isNullOrEmpty()) {
+                call.respond(HttpStatusCode.BadRequest, "Refresh token missing")
+                return@post
+            }
+
+            // Validate the refresh token
+            val decodedJWT = try {
+                JWT.require(Algorithm.HMAC256("secret-key"))
+                    .withIssuer("your.domain.com")
+                    .build()
+                    .verify(refreshToken)
+            } catch (e: JWTVerificationException) {
+                call.respond(HttpStatusCode.Unauthorized, "Invalid refresh token")
+                return@post
+            }
+
+            val userId = decodedJWT.subject
+
+            // Retrieve user and verify the token
+            val usersCollection = DataBase.database.getCollection<User>("users")
+            val user = usersCollection.find(Filters.eq("_id", userId)).toList().firstOrNull()
+
+            if (user == null || user.refreshToken != refreshToken) {
+                call.respond(HttpStatusCode.Unauthorized, "Invalid refresh token")
+                return@post
+            }
+
+            // Generate a new access token
+            val newAccessToken = JwtConfig.generateToken(user.username, user.role)
+            call.respond(HttpStatusCode.OK, mapOf("accessToken" to newAccessToken))
+        }
     }
+
 }
 

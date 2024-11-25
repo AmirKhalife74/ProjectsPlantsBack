@@ -28,6 +28,7 @@ dependencies {
     //Mongo Db
     implementation("org.litote.kmongo:kmongo:4.10.0")
     implementation("org.litote.kmongo:kmongo-coroutine:4.10.0")
+    implementation("org.mongodb:mongodb-driver-sync:4.9.0")
 
 
     //json and data converters

@@ -11,8 +11,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Application.configurePanelRouting(plantRepository: PlantRepository,userRepository: UserRepository)
-{
+fun Application.configurePanelRouting(plantRepository: PlantRepository, userRepository: UserRepository) {
     routing {
         post("/admin/login") {
             val credentials = call.receive<LoginRequest>()
@@ -24,16 +23,16 @@ fun Application.configurePanelRouting(plantRepository: PlantRepository,userRepos
             }
         }
         authenticate("auth-admin") {
-
-            // Panel Main Page Data
-            get("admin/getAllPlants") {
-                val plants = plantRepository.getAllPlants()
-                call.respond(HttpStatusCode.OK,plants)
-            }
-
-            get("admin/getAllUsers") {
-                val users = userRepository.getAllUsers()
-                call.respond(HttpStatusCode.OK,users)
+            route("admin") {
+                // Panel Main Page Data
+                get("admin/getAllPlants") {
+                    val plants = plantRepository.getAllPlants()
+                    call.respond(HttpStatusCode.OK, plants)
+                }
+                get("admin/getAllUsers") {
+                    val users = userRepository.getAllUsers()
+                    call.respond(HttpStatusCode.OK, users)
+                }
             }
         }
     }

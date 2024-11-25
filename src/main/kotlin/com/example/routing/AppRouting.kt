@@ -22,66 +22,70 @@ fun Application.configureRouting(repository: PlantRepository) {
     routing {
 
         authenticate("auth-user") {
-
-
-            get("/getAllPlants") {
-                val plants =
-                    repository.getAllPlants()
-                if (plants.isNotEmpty()) {
-                    call.respond(HttpStatusCode.OK,plants)
-                } else {
-                    call.respond(HttpStatusCode.NotFound, "There is no plants")
-                }
-
-            }
-            post("/getPlantById{id}") {
-                val id =
-                    call.parameters["id"] ?: return@post call.respondText(
-                        "Bad Request",
-                        status = HttpStatusCode.BadRequest
-                    )
-                val plant = repository.getPlantById(id) ?: return@post call.respondText(
-                    "PlantNot found",
-                    status = HttpStatusCode.NotFound
-                )
-                call.respond(plant)
-            }
-
-            post("/addPlant") {
-                val plant = call.receive<Plant>()
-                try {
-                    repository.addPlant(plant)
-                    val response = ResponseModel(
-                        status = "200",
-                        message = "Plant added successfully"
-
-                    )
-                    call.respond(HttpStatusCode.OK, response)
-                } catch (e: Exception) {
-                    call.respond(HttpStatusCode.BadRequest)
-                }
-            }
-
-            put("/editPlantById{id}")
+            route("/plant")
             {
-                val id = call.parameters["id"]
-                val updatedPlant = call.receive<Plant>()
-                val isUpdated = id?.let { repository.updatePlant(it, updatedPlant) } ?: false
-                if (isUpdated) {
-                    call.respondText("Plant updated successfully")
-                } else {
-                    call.respondText("Failed to update plant", status = HttpStatusCode.BadRequest)
-                }
 
             }
+            route("/app") {
+                get("/getAllPlants") {
+                    val plants =
+                        repository.getAllPlants()
+                    if (plants.isNotEmpty()) {
+                        call.respond(HttpStatusCode.OK, plants)
+                    } else {
+                        call.respond(HttpStatusCode.NotFound, "There is no plants")
+                    }
 
-            delete("/deletePlant{id}") {
-                val id = call.parameters["id"]
-                val isDeleted = id?.let { repository.deletePlant(it) } ?: false
-                if (isDeleted) {
-                    call.respondText("Plant deleted successfully")
-                } else {
-                    call.respondText("Failed to delete plant", status = HttpStatusCode.BadRequest)
+                }
+                post("/getPlantById{id}") {
+                    val id =
+                        call.parameters["id"] ?: return@post call.respondText(
+                            "Bad Request",
+                            status = HttpStatusCode.BadRequest
+                        )
+                    val plant = repository.getPlantById(id) ?: return@post call.respondText(
+                        "PlantNot found",
+                        status = HttpStatusCode.NotFound
+                    )
+                    call.respond(plant)
+                }
+
+                post("/addPlant") {
+                    val plant = call.receive<Plant>()
+                    try {
+                        repository.addPlant(plant)
+                        val response = ResponseModel(
+                            status = "200",
+                            message = "Plant added successfully"
+
+                        )
+                        call.respond(HttpStatusCode.OK, response)
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.BadRequest)
+                    }
+                }
+
+                put("/editPlantById{id}")
+                {
+                    val id = call.parameters["id"]
+                    val updatedPlant = call.receive<Plant>()
+                    val isUpdated = id?.let { repository.updatePlant(it, updatedPlant) } ?: false
+                    if (isUpdated) {
+                        call.respondText("Plant updated successfully")
+                    } else {
+                        call.respondText("Failed to update plant", status = HttpStatusCode.BadRequest)
+                    }
+
+                }
+
+                delete("/deletePlant{id}") {
+                    val id = call.parameters["id"]
+                    val isDeleted = id?.let { repository.deletePlant(it) } ?: false
+                    if (isDeleted) {
+                        call.respondText("Plant deleted successfully")
+                    } else {
+                        call.respondText("Failed to delete plant", status = HttpStatusCode.BadRequest)
+                    }
                 }
             }
         }

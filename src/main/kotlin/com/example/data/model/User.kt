@@ -10,5 +10,6 @@ data class User(@Serializable(with = ObjectIdSerializer::class) val id: ObjectId
                 val username: String,
                 val email: String,
                 val passwordHash: String,
-                val role: UserRole
+                val role: UserRole,
+                var refreshToken: String? = null
 )
