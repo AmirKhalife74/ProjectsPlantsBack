@@ -10,6 +10,7 @@ import com.example.utils.JwtConfig
 import com.example.utils.UserRole
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.application.ApplicationCallPipeline.ApplicationPhase.Plugins
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
@@ -20,12 +21,21 @@ import io.ktor.server.routing.*
 fun Application.configureRouting(repository: PlantRepository) {
 
     routing {
+//        intercept(Plugins) {
+//            val principal = call.principal<JWTPrincipal>()
+//            if (principal == null) {
+//                call.respond(HttpStatusCode.Unauthorized, "Please log in")
+//                return@intercept finish()  // درخواست متوقف می‌شود و پیغام خطا می‌دهد
+//            }
+//
+//            val role = principal.getClaim("role", String::class)
+//            if (role != "admin") {
+//                call.respond(HttpStatusCode.Forbidden, "Access Denied")
+//                return@intercept finish()  // دسترسی به روت‌های admin فقط در صورتی که نقش admin باشد
+//            }
+//        }
 
         authenticate("auth-user") {
-            route("/plant")
-            {
-
-            }
             route("/app") {
                 get("/getAllPlants") {
                     val plants =
@@ -49,44 +59,14 @@ fun Application.configureRouting(repository: PlantRepository) {
                     )
                     call.respond(plant)
                 }
-
-                post("/addPlant") {
-                    val plant = call.receive<Plant>()
-                    try {
-                        repository.addPlant(plant)
-                        val response = ResponseModel(
-                            status = "200",
-                            message = "Plant added successfully"
-
-                        )
-                        call.respond(HttpStatusCode.OK, response)
-                    } catch (e: Exception) {
-                        call.respond(HttpStatusCode.BadRequest)
-                    }
-                }
-
-                put("/editPlantById{id}")
-                {
-                    val id = call.parameters["id"]
-                    val updatedPlant = call.receive<Plant>()
-                    val isUpdated = id?.let { repository.updatePlant(it, updatedPlant) } ?: false
-                    if (isUpdated) {
-                        call.respondText("Plant updated successfully")
-                    } else {
-                        call.respondText("Failed to update plant", status = HttpStatusCode.BadRequest)
-                    }
+                post("/getUserInfo") {
+                    val id = call.parameters["id"] ?: return@post call.respondText(
+                        "not found",
+                        status = HttpStatusCode.BadRequest
+                    )
 
                 }
 
-                delete("/deletePlant{id}") {
-                    val id = call.parameters["id"]
-                    val isDeleted = id?.let { repository.deletePlant(it) } ?: false
-                    if (isDeleted) {
-                        call.respondText("Plant deleted successfully")
-                    } else {
-                        call.respondText("Failed to delete plant", status = HttpStatusCode.BadRequest)
-                    }
-                }
             }
         }
 

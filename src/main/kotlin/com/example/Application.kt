@@ -8,9 +8,11 @@ import com.example.data.repositories.UserRepository
 import com.example.routing.configureAuthRouting
 import com.example.routing.configurePanelRouting
 import com.example.routing.configureRouting
+import com.example.utils.UserRole
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.application.ApplicationCallPipeline.ApplicationPhase.Plugins
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -41,7 +43,6 @@ fun Application.configureMongoDB() {
 
 fun Application.module() {
     configureMongoDB()
-    configureSecurity()
     configureLogging()
     install(ContentNegotiation)
     {
@@ -56,13 +57,15 @@ fun Application.module() {
     }
     val plantRepository = PlantRepository(database.getCollection("plants"))
     val userRepository = UserRepository(database.getCollection("users"))
-    configureStatusPages()
-    configurePanelRouting(plantRepository,userRepository)
+    configureAuthRouting(userRepository)
 
     routing {
         route("/api") {
+           // configureStatusPages()
+            configureSecurity()
             configureRouting(plantRepository)
-            configureAuthRouting(userRepository)
+            configurePanelRouting(plantRepository,userRepository)
+
         }
     }
 
@@ -84,13 +87,14 @@ fun Application.configureSecurity()
         }
 
         jwt("auth-admin") {
-            realm = "AdminRealm"
-            verifier(JWT.require(Algorithm.HMAC256("your-secret-key-admin"))
-                .withIssuer("projectPlantsPanel")
+            realm = "AppRealm"
+            verifier(JWT.require(Algorithm.HMAC256("your-secret-key"))
+                .withIssuer("projectPlants")
                 .build()
             )
             validate { credential ->
                 val role = credential.payload.getClaim("role").asString()
+                println("Role in token: $role") // Debug log
                 if (role == "ADMIN" || role == "MODERATOR") JWTPrincipal(credential.payload) else null
             }
         }

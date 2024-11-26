@@ -17,7 +17,7 @@ object JwtConfig {
 
     fun generateToken(username: String, role: UserRole): String {
         val secret = "your-secret-key" // از فایل کانفیگ بخوانید
-        val issuer = "projectplants"
+        val issuer = "projectPlants"
         val audience = "projectPlantsAudience"
         val validityInMs = 36_000_00 * 24 // اعتبار ۱۰ ساعت
 
@@ -30,17 +30,17 @@ object JwtConfig {
             .sign(Algorithm.HMAC256(secret))
     }
 
-    fun generateAdminToken(username: String): String {
-        val secret = "your-secret-key-admin" // از فایل کانفیگ بخوانید
-        val issuer = "projectPlantsPanel"
-        val audience = "projectPlantsAudiencePanel"
+    fun generateAdminToken(username: String,role: UserRole): String {
+        val secret = "your-secret-key" // از فایل کانفیگ بخوانید
+        val issuer = "projectPlants"
+        val audience = "projectPlantsAudience"
         val validityInMs = 36_000_00 * 10 // اعتبار ۱۰ ساعت
 
         return JWT.create()
             .withIssuer(issuer)
             .withAudience(audience)
             .withClaim("username", username)
-            .withClaim("role", "ADMIN")
+            .withClaim("role", role.name)
             .withExpiresAt(Date(System.currentTimeMillis() + validityInMs))
             .sign(Algorithm.HMAC256(secret))
     }
