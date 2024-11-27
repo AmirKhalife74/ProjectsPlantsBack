@@ -3,14 +3,12 @@ package com.example.utils
 import com.auth0.jwt.JWT
 
 import com.auth0.jwt.algorithms.Algorithm
-import com.example.data.model.User
+import com.example.data.model.user.User
 import com.example.data.model.auth.LoginResponse
 import com.example.database.DataBase
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Updates
-import io.ktor.server.auth.*
 import java.util.*
-import com.auth0.jwt.JWT as Auth0JWT
 
 object JwtConfig {
 

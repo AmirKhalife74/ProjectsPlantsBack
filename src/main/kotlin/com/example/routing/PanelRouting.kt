@@ -42,10 +42,11 @@ fun Application.configurePanelRouting(plantRepository: PlantRepository, userRepo
                     val plant = call.receive<Plant>()
                     try {
                         plantRepository.addPlant(plant)
-                        val response = ResponseModel(
-                            status = "200",
-                            message = "Plant added successfully"
-
+                        val response = ResponseModel<String>(
+                            status = 200,
+                            message = "Plant added successfully",
+                            isSuccessful = true,
+                            data = ""
                         )
                         call.respond(HttpStatusCode.OK, response)
                     } catch (e: Exception) {

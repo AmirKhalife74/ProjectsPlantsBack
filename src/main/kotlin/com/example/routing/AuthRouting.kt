@@ -3,7 +3,8 @@ package com.example.routing
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
-import com.example.data.model.User
+import com.example.data.model.ResponseModel
+import com.example.data.model.user.User
 import com.example.data.model.auth.LoginRequest
 import com.example.data.model.auth.RegisterRequest
 import com.example.data.repositories.UserRepository
@@ -13,8 +14,6 @@ import com.example.utils.UserRole
 import com.mongodb.client.model.Filters
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -31,6 +30,7 @@ fun Application.configureAuthRouting(userRepository: UserRepository) {
                 call.respond(mapOf("token" to token))
             } else {
                 call.respond(HttpStatusCode.Unauthorized, "Invalid credentials")
+
             }
         }
 
@@ -38,14 +38,16 @@ fun Application.configureAuthRouting(userRepository: UserRepository) {
             val registerRequest = call.receive<RegisterRequest>()
             // Password validation
             if (registerRequest.password != registerRequest.confirmPassword) {
-                call.respond(HttpStatusCode.BadRequest, "Passwords do not match")
+                val responseModel = ResponseModel<User>(status = 409, isSuccessful = true,message = "پسوورد یکسان نبود!",data = null)
+                call.respond(HttpStatusCode.OK, responseModel)
                 return@post
             }
 
             // Check if username or email already exists
             val existingUser = userRepository.getUserByUsername(registerRequest.username)
             if (existingUser != null) {
-                call.respond(HttpStatusCode.Conflict, "Username already taken")
+                val responseModel = ResponseModel<User>(status = 409, isSuccessful = true,message = "کاربر وجود دارد",data = null)
+                call.respond(HttpStatusCode.Conflict, responseModel)
                 return@post
             }
 
@@ -58,14 +60,18 @@ fun Application.configureAuthRouting(userRepository: UserRepository) {
 
             // Save the user
             val createdUser = userRepository.createUser(registerRequest)
-            call.respond(HttpStatusCode.Created, createdUser)
+            val responseMessage: ResponseModel<User> =
+                ResponseModel(status = 200, isSuccessful = true, message = "عملیات با موفقیت انجام شد", data = createdUser)
+            call.respond(HttpStatusCode.Created,responseMessage)
+
 
         }
         post("/refresh") {
             val refreshToken = call.request.header("Authorization")?.removePrefix("Bearer ")
 
             if (refreshToken.isNullOrEmpty()) {
-                call.respond(HttpStatusCode.BadRequest, "Refresh token missing")
+                val responseModel = ResponseModel<User>(status = 400, isSuccessful = false,message = "رفرش توکن ارسال نشد",data = null)
+                call.respond(HttpStatusCode.BadRequest, responseModel)
                 return@post
             }
 
@@ -76,7 +82,8 @@ fun Application.configureAuthRouting(userRepository: UserRepository) {
                     .build()
                     .verify(refreshToken)
             } catch (e: JWTVerificationException) {
-                call.respond(HttpStatusCode.Unauthorized, "Invalid refresh token")
+                val responseModel = ResponseModel<User>(status = 400, isSuccessful = false,message = "توکن نا معتبر",data = null)
+                call.respond(HttpStatusCode.Unauthorized, responseModel)
                 return@post
             }
 

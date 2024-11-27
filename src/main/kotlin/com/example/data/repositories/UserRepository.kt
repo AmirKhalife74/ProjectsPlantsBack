@@ -1,8 +1,7 @@
 package com.example.data.repositories
 
-import com.example.data.model.User
+import com.example.data.model.user.User
 import com.example.data.model.auth.RegisterRequest
-import com.example.database.DataBase
 import com.example.utils.UserRole
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
@@ -27,7 +26,7 @@ class UserRepository(private val collection: CoroutineCollection<User>) {
 
     suspend fun createUser(user:RegisterRequest): User {
         val hashedPassword = BCrypt.hashpw(user.password, BCrypt.gensalt())
-        val newUser = User(username = user.username, passwordHash = hashedPassword, email = user.email, role = user.role)
+        val newUser = User(username = user.username, passwordHash = hashedPassword, email = user.email, role = user.role, imageProfileAddress = "")
         return addUser(newUser)
     }
 

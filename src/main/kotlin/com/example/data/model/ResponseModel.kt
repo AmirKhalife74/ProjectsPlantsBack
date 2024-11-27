@@ -3,7 +3,10 @@ package com.example.data.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ResponseModel(
-    val status: String,
-    val message: String
+data class ResponseModel<T>(
+    val status: Int,
+    val isSuccessful:Boolean,
+    val message: String,
+    var data: T?
 )
+
