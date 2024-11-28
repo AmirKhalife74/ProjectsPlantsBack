@@ -6,6 +6,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException
 import com.example.data.model.ResponseModel
 import com.example.data.model.user.User
 import com.example.data.model.auth.LoginRequest
+import com.example.data.model.auth.LoginResponse
 import com.example.data.model.auth.RegisterRequest
 import com.example.data.repositories.UserRepository
 import com.example.database.DataBase
@@ -21,16 +22,18 @@ import io.ktor.server.routing.*
 fun Application.configureAuthRouting(userRepository: UserRepository) {
     routing {
         post("/login") {
+            val loginRequest = call.receive<LoginRequest>() // Deserialize the incoming request
 
-            val loginRequest = call.receive<LoginRequest>()
             val user = userRepository.getUserByUsername(loginRequest.username)
 
             if (user != null && userRepository.verifyPassword(loginRequest.password, user.passwordHash)) {
-                val token = JwtConfig.generateToken(user.username, user.role)
-                call.respond(mapOf("token" to token))
+                val accessToken = JwtConfig.generateToken(user.username, user.role)
+                val refreshToken = JwtConfig.generateRefreshToken(user.username) // Assuming you have a method for refresh tokens
+                val loginResponse = LoginResponse(accessToken, refreshToken)
+                val response = ResponseModel(200,true,"hi",loginResponse)
+                call.respond(HttpStatusCode.OK,response) // Respond with the custom class
             } else {
-                call.respond(HttpStatusCode.Unauthorized, "Invalid credentials")
-
+                call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid credentials"))
             }
         }
 

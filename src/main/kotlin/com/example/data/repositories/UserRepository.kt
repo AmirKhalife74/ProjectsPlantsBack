@@ -26,7 +26,7 @@ class UserRepository(private val collection: CoroutineCollection<User>) {
 
     suspend fun createUser(user:RegisterRequest): User {
         val hashedPassword = BCrypt.hashpw(user.password, BCrypt.gensalt())
-        val newUser = User(username = user.username, passwordHash = hashedPassword, email = user.email, role = user.role, imageProfileAddress = "")
+        val newUser = User(username = user.username, passwordHash = hashedPassword, email = user.email, role = user.role)
         return addUser(newUser)
     }
 

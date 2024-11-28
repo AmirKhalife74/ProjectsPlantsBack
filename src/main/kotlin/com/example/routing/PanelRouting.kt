@@ -3,10 +3,10 @@ package com.example.routing
 import com.example.data.model.Plant
 import com.example.data.model.ResponseModel
 import com.example.data.model.auth.LoginRequest
+import com.example.data.model.auth.LoginResponse
 import com.example.data.repositories.PlantRepository
 import com.example.data.repositories.UserRepository
-import com.example.utils.JwtConfig.generateAdminToken
-import com.example.utils.UserRole
+import com.example.utils.JwtConfig
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -16,13 +16,19 @@ import io.ktor.server.routing.*
 
 fun Application.configurePanelRouting(plantRepository: PlantRepository, userRepository: UserRepository) {
     routing {
-        post("/admin/login") {
-            val credentials = call.receive<LoginRequest>()
-            if (credentials.username == "admin") {
-                val token = generateAdminToken(credentials.username, UserRole.ADMIN)
-                call.respond(mapOf("token" to token))
+        post("/login") {
+            val loginRequest = call.receive<LoginRequest>() // Deserialize the incoming request
+
+            val user = userRepository.getUserByUsername(loginRequest.username)
+
+            if (user != null && userRepository.verifyPassword(loginRequest.password, user.passwordHash)) {
+                val accessToken = JwtConfig.generateToken(user.username, user.role)
+                val refreshToken = JwtConfig.generateRefreshToken(user.username) // Assuming you have a method for refresh tokens
+                val loginResponse = LoginResponse(accessToken, refreshToken)
+                val response = ResponseModel(200,true,"hi",loginResponse)
+                call.respond(HttpStatusCode.OK,response) // Respond with the custom class
             } else {
-                call.respond(HttpStatusCode.Unauthorized, "Invalid credentials")
+                call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid credentials"))
             }
         }
         authenticate("auth-admin") {
@@ -42,7 +48,7 @@ fun Application.configurePanelRouting(plantRepository: PlantRepository, userRepo
                     val plant = call.receive<Plant>()
                     try {
                         plantRepository.addPlant(plant)
-                        val response = ResponseModel<String>(
+                        val response = ResponseModel(
                             status = 200,
                             message = "Plant added successfully",
                             isSuccessful = true,
