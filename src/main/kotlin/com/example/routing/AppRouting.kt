@@ -52,7 +52,7 @@ fun Application.configureRouting(repository: PlantRepository) {
                     val id =
                         call.parameters["id"] ?: return@post call.respondText(
                             "Bad Request",
-                            status = HttpStatusCode.BadRequeKst
+                            status = HttpStatusCode.BadRequest
                         )
                     val plant = repository.getPlantById(id) ?: return@post call.respondText(
                         "PlantNot found",
