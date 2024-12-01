@@ -10,7 +10,11 @@ import org.litote.kmongo.reactivestreams.KMongo
 
 class PlantRepository(private val collection: CoroutineCollection<Plant>) {
 
-    suspend fun getAllPlants(): List<Plant> = collection.find().toList()
+    suspend fun getAllPlants(): List<Plant>{
+
+        val plants = collection.find().toList()
+        return plants
+    }
 
     suspend fun getPlantById(id: String): Plant? =
         collection.findOne(Plant::id eq ObjectId(id))

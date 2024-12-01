@@ -41,7 +41,8 @@ fun Application.configureRouting(repository: PlantRepository) {
                     val plants =
                         repository.getAllPlants()
                     if (plants.isNotEmpty()) {
-                        call.respond(HttpStatusCode.OK, plants)
+                        val response: ResponseModel<List<Plant>> =ResponseModel(data = plants, status = 200, isSuccessful = true, message = "عملیات با موفقیت انجام شد")
+                        call.respond(HttpStatusCode.OK,response )
                     } else {
                         call.respond(HttpStatusCode.NotFound, "There is no plants")
                     }
@@ -51,7 +52,7 @@ fun Application.configureRouting(repository: PlantRepository) {
                     val id =
                         call.parameters["id"] ?: return@post call.respondText(
                             "Bad Request",
-                            status = HttpStatusCode.BadRequest
+                            status = HttpStatusCode.BadRequeKst
                         )
                     val plant = repository.getPlantById(id) ?: return@post call.respondText(
                         "PlantNot found",
