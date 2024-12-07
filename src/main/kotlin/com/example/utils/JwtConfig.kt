@@ -44,8 +44,8 @@ object JwtConfig {
     }
 
     fun generateRefreshToken(userId: String): String {
-        val jwtIssuer = "your.domain.com"
-        val jwtSecret = "secret-key"
+        val jwtIssuer = "projectPlants"
+        val jwtSecret = "your-secret-key"
         return JWT.create()
             .withIssuer(jwtIssuer)
             .withSubject(userId)

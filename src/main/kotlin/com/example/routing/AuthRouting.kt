@@ -22,18 +22,17 @@ import io.ktor.server.routing.*
 fun Application.configureAuthRouting(userRepository: UserRepository) {
     routing {
         post("/login") {
-            val loginRequest = call.receive<LoginRequest>() // Deserialize the incoming request
 
+            val loginRequest = call.receive<LoginRequest>()
             val user = userRepository.getUserByUsername(loginRequest.username)
 
             if (user != null && userRepository.verifyPassword(loginRequest.password, user.passwordHash)) {
-                val accessToken = JwtConfig.generateToken(user.username, user.role)
-                val refreshToken = JwtConfig.generateRefreshToken(user.username) // Assuming you have a method for refresh tokens
-                val loginResponse = LoginResponse(accessToken, refreshToken)
-                val response = ResponseModel(200,true,"hi",loginResponse)
-                call.respond(HttpStatusCode.OK,response) // Respond with the custom class
+                val tokens = JwtConfig.handleLogin(user)
+                val response = ResponseModel(status = 200, isSuccessful = true,"عملیات با موفقیت انحام شد", tokens)
+                call.respond(response)
             } else {
-                call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid credentials"))
+                call.respond(HttpStatusCode.Unauthorized, "Invalid credentials")
+
             }
         }
 

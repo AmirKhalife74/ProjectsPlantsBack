@@ -15,6 +15,8 @@ import io.ktor.server.application.*
 import io.ktor.server.application.ApplicationCallPipeline.ApplicationPhase.Plugins
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
@@ -33,6 +35,9 @@ lateinit var mongoClient: CoroutineClient
 lateinit var database: CoroutineDatabase
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
+    embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
+        module() // Calls the module function where your routes and configurations are set up
+    }.start(wait = true)
 }
 
 fun Application.configureMongoDB() {

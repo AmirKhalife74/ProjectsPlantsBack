@@ -41,8 +41,8 @@ fun Application.configureRouting(repository: PlantRepository) {
                     val plants =
                         repository.getAllPlants()
                     if (plants.isNotEmpty()) {
-                        val response: ResponseModel<List<Plant>> =ResponseModel(data = plants, status = 200, isSuccessful = true, message = "عملیات با موفقیت انجام شد")
-                        call.respond(HttpStatusCode.OK,response )
+                        val responseModel = ResponseModel(status = 200, isSuccessful = true, message = "عملیات با موفقیت انحام شذ", data = plants)
+                        call.respond(HttpStatusCode.OK, responseModel)
                     } else {
                         call.respond(HttpStatusCode.NotFound, "There is no plants")
                     }
