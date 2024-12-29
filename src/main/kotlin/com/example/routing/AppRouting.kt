@@ -34,14 +34,34 @@ fun Application.configureRouting(repository: PlantRepository) {
 //                return@intercept finish()  // دسترسی به روت‌های admin فقط در صورتی که نقش admin باشد
 //            }
 //        }
+        get("/getAllPlants") {
+            val plants =
+                repository.getAllPlants()
+            if (plants.isNotEmpty()) {
+                val responseModel = ResponseModel(
+                    status = 200,
+                    isSuccessful = true,
+                    message = "عملیات با موفقیت انحام شذ",
+                    data = plants
+                )
+                call.respond(HttpStatusCode.OK, responseModel)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "There is no plants")
+            }
 
+        }
         authenticate("auth-user") {
             route("/app") {
                 get("/getAllPlants") {
                     val plants =
                         repository.getAllPlants()
                     if (plants.isNotEmpty()) {
-                        val responseModel = ResponseModel(status = 200, isSuccessful = true, message = "عملیات با موفقیت انحام شذ", data = plants)
+                        val responseModel = ResponseModel(
+                            status = 200,
+                            isSuccessful = true,
+                            message = "عملیات با موفقیت انحام شذ",
+                            data = plants
+                        )
                         call.respond(HttpStatusCode.OK, responseModel)
                     } else {
                         call.respond(HttpStatusCode.NotFound, "There is no plants")
