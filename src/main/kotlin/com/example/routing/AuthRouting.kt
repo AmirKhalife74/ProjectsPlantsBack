@@ -6,7 +6,6 @@ import com.auth0.jwt.exceptions.JWTVerificationException
 import com.example.data.model.ResponseModel
 import com.example.data.model.user.User
 import com.example.data.model.auth.LoginRequest
-import com.example.data.model.auth.LoginResponse
 import com.example.data.model.auth.RegisterRequest
 import com.example.data.repositories.UserRepository
 import com.example.database.DataBase

@@ -68,7 +68,7 @@ fun Application.module() {
         route("/api") {
            // configureStatusPages()
             configureSecurity()
-            configureRouting(plantRepository)
+            configureRouting(plantRepository,userRepository)
             configurePanelRouting(plantRepository,userRepository)
 
         }

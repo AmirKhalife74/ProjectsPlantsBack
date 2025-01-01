@@ -33,4 +33,8 @@ class UserRepository(private val collection: CoroutineCollection<User>) {
     suspend fun getAllUsers(): List<User> {
         return collection.find(User::role eq UserRole.USER).toList()
     }
+
+//    suspend fun getUserByID(id: String): User? {
+//        return collection.findOne(User::id eq id)
+//    }
 }
